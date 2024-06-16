@@ -6,35 +6,69 @@ from truco.constantes import *
 from truco.util import *
 from truco.protocol import *
 from truco.match_handler import *
+from truco.errors import *
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger(__name__)
-set_logger( logger )
+# set_logger( logger )
 
 rollup_server = environ["ROLLUP_HTTP_SERVER_URL"]
-log_info(f"HTTP rollup_server url is {rollup_server}")
+logger.info(f"HTTP rollup_server url is {rollup_server}")
 
-m_handler = match_handler()
+def notice_response( response_data ):
+    pass
+
+def report_error( err ):
+    pass
+
 def handle_advance(data):
 
-    md = data[ "metadata" ]
+    sender = data[ "metadata" ][ "msg_sender"]
     load = data[ "payload" ]
-
-    sender = md["msg_sender"]
-    log_info(f"Received advance request from {hex2str(sender) }{ADDRESS_C} ")
-    log_info(f"")
+    logger.info( f"\nmessage from {sender}" )
+    logger.info( f"raw payload {load}")
 
     try:
-        status = "accept"
-        target = "notice"
-        command = get_command( md , load )
+        command = get_command( sender , load )
+        logger.info( f"decoded payload {command}" )
 
-        response = m_handler.handle_advance( command )
+        requested_method = command["cmd"]
+        method = advance_methods[ requested_method ]
+        response_data = method( command )
+        logger.info( f"response data {response_data}\n" )
 
-    except Exception as ex:
-        raise ex
+        notice_response( response_data )
+        return "accept"
+    
+    except Exception as err:
 
-    return status
+        if isinstance( err , requestError ):
+            report_error( err )
+        else:
+            logger.error( f"{str(err)}")
+        
+        return "reject"
+
+    # # checking if it is a json object -----------------------
+    # command = get_command( load )
+    # if command is None:
+    #     log_info(f"unknown payload, message rejected\n")
+    #     return "reject"
+    # log_info( f"decoded payload {command}" )
+
+    # # checking if it is in a valid format -------------------
+    # if not check_command( command ):
+    #     log_info(f"unknown command\n" )
+    #     return "reject"
+    
+    # cmd = advance_methods[ command[ "cmd" ] ]
+    # response_data = cmd( sender , command )
+    # if response_data is None:
+    #     log_info( f"illegal command\n" )
+    #     return "reject"
+
+    # log_info( f"response data {response_data}\n")
+    # return "accept"
 
 
 def handle_inspect(data):

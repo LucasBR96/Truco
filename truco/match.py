@@ -5,7 +5,27 @@ from truco.card import *
 from truco.deck import *
 from truco.util import *
 
+class player:
+
+    def __init__( self , _id , wallet_address , pub_k  ):
+
+        self._id = _id
+        self.wallet_address = wallet_address
+        self.pub_k = pub_k
+        
+        self.active = False
+        self.current_match = None
+    
+    def __hash__( self ):
+        return hash( self._id )
+    
+    def sign_play( self , play_obj : play , last_sgn : str ) -> str:
+        pass
+
+
 class match:
+
+    _nxt_match_id = 0
 
     def __init__( self , _id , player_1_address, pubk_1 , player_2_address = None , pubk_2 = None ):
 
@@ -19,7 +39,7 @@ class match:
         # Player public keys
         self.pubk = {
             self.player_1 : pubk_1 ,
-            self.player_1 : pubk_2
+            self.player_2 : pubk_2
         }
 
         # History of plays
@@ -37,12 +57,17 @@ class match:
 
         # deck
         self._seed = make_seed()
-        self.deck = deck( self.seed )
+        self.deck = deck( self._seed )
 
         # hands
         self.player_hands = {
             self.player_1 : None , self.player_2 : None
         }
+    
+    def add_player( self , player , pubk ):
+        self.player_2 = player
+        self.pubk[ self.player_2 ] = pubk
+
 
     def player_in_game( self , player ):
         return player == self.player_1 or player == self.player_2
@@ -75,4 +100,4 @@ class match:
         hand = self.player_hands[ player ]
         pub_key = self.pubk[ player ]
 
-        return [ rsa_encrypt( str( card_i ) , pub_key ) for card_i in hand ]
+        # return [ rsa_encrypt( str( card_i ) , pub_key ) for card_i in hand ]
