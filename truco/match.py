@@ -1,72 +1,64 @@
 from truco.pseudo_rng import *
 from truco.play import *
 from truco.card import *
-# from truco.message import *
+from truco.player import *
 from truco.deck import *
 from truco.util import *
-
-class player:
-
-    def __init__( self , _id , wallet_address , pub_k  ):
-
-        self._id = _id
-        self.wallet_address = wallet_address
-        self.pub_k = pub_k
-        
-        self.active = False
-        self.current_match = None
-    
-    def __hash__( self ):
-        return hash( self._id )
-    
-    def sign_play( self , play_obj : play , last_sgn : str ) -> str:
-        pass
-
+from truco.match_fsm import *
+import time as t
 
 class match:
 
     _nxt_match_id = 0
 
-    def __init__( self , _id , player_1_address, pubk_1 , player_2_address = None , pubk_2 = None ):
+    def __init__( self , player_1 : player , player_2 : player = None ):
 
-        self._id = _id
+        self._id = match._nxt_match_id
+        match._nxt_match_id += 1
+        self.start = t.time()
+        self._seed = make_seed()
 
         # Player ip
-        self.player_1 = player_1_address # Host
-        self.player_2 = player_2_address # Visitor
-        self.player_turn = self.player_1
+        self.player_1 = player_1 # Host
+        self.player_2 = player_2 # Visitor
+        self.fsm : match_fsm = match_fsm( self._seed , player_1 , player_2 )
 
-        # Player public keys
-        self.pubk = {
-            self.player_1 : pubk_1 ,
-            self.player_2 : pubk_2
-        }
+        # # Player public keys
+        # self.pubk = {
+        #     self.player_1 : pubk_1 ,
+        #     self.player_2 : pubk_2
+        # }
 
-        # History of plays
-        self.hist : play = []
-        self.current_round : int = -1
-        self.current_card_n : int = 0
+        # # History of plays
+        # self.hist : play = []
+        # self.current_round : int = -1
+        # self.current_card_n : int = 0
 
-        #Scoring
-        self.match_score = {
-            self.player_1 : 0 , self.player_2 : 0
-        }
-        self.round_score = {
-            self.player_1 : 0 , self.player_2 : 0
-        }
+        # #Scoring
+        # self.match_score = {
+        #     self.player_1 : 0 , self.player_2 : 0
+        # }
+        # self.round_score = {
+        #     self.player_1 : 0 , self.player_2 : 0
+        # }
 
-        # deck
-        self._seed = make_seed()
-        self.deck = deck( self._seed )
+        # # deck
+        # self._seed = make_seed()
+        # self.deck = deck( self._seed )
 
-        # hands
-        self.player_hands = {
-            self.player_1 : None , self.player_2 : None
-        }
+        # # hands
+        # self.player_hands = {
+        #     self.player_1 : None , self.player_2 : None
+        # }
     
-    def add_player( self , player , pubk ):
-        self.player_2 = player
-        self.pubk[ self.player_2 ] = pubk
+    def add_player( self , plyr : player ):
+        self.player_2 = plyr
+        self.fsm.player_2 = plyr
+        self.fsm.state = match_fsm._x1
+        
+        self.player_1.status = player.playing_status
+        self.player_2.status = player.playing_status
+        self.player_2.current_match = self._id
 
 
     def player_in_game( self , player ):

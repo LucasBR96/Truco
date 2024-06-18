@@ -5,7 +5,7 @@ from truco.log import *
 from truco.constantes import *
 from truco.util import *
 from truco.protocol import *
-from truco.match_handler import *
+from truco.player import *
 from truco.errors import *
 
 logging.basicConfig(level="INFO")
@@ -25,8 +25,8 @@ def handle_advance(data):
 
     sender = data[ "metadata" ][ "msg_sender"]
     load = data[ "payload" ]
-    logger.info( f"\nmessage from {sender}" )
-    logger.info( f"raw payload {load}")
+    logger.info( f"\nAdvance request from {sender}" )
+    logger.info( f"Raw payload {load}")
 
     try:
         command = get_command( sender , load )
@@ -42,12 +42,13 @@ def handle_advance(data):
     
     except Exception as err:
 
-        if isinstance( err , requestError ):
-            report_error( err )
-        else:
-            logger.error( f"{str(err)}")
+        raise err
+        # if isinstance( err , requestError ):
+        #     report_error( err )
+        # else:
+        #     logger.error( f"{str(err)}")
         
-        return "reject"
+        # return "reject"
 
     # # checking if it is a json object -----------------------
     # command = get_command( load )
@@ -72,9 +73,32 @@ def handle_advance(data):
 
 
 def handle_inspect(data):
-    log_info(f"Received inspect request data {data}")
-    return "accept"
+        
+    sender = data[ "metadata" ][ "msg_sender"]
+    load = data[ "payload" ]
+    logger.info( f"\nInspect request from {sender}" )
+    logger.info( f"Raw payload {load}")
 
+    try:
+        command = get_command( sender , load , rqs_type = "inspect" )
+        logger.info( f"decoded payload {command}" )
+
+        requested_method = command["cmd"]
+        method = advance_methods[ requested_method ]
+        response_data = method( command )
+        logger.info( f"response data {response_data}\n" )
+
+        notice_response( response_data )
+        return "accept"
+    
+    except Exception as err:
+
+        if isinstance( err , requestError ):
+            report_error( err )
+        else:
+            logger.error( f"{str(err)}")
+        
+        return "reject"
 
 handlers = {
     "advance_state": handle_advance,
@@ -83,7 +107,9 @@ handlers = {
 
 finish = {"status": "accept"}
 
-print_logo()
+logger.info(f"")
+logger.info(f"--------------------- Truco Chain ---------------------")
+logger.info( f"" )
 while True:
     logger.info("Sending finish")
     response = requests.post(rollup_server + "/finish", json=finish)
