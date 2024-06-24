@@ -14,9 +14,10 @@ import time as t
 # player_col = ["player_id" , "session_num" , "pubk" , "status" , "current_match" ]
 # logged_players : pd.DataFrame = pd.DataFrame( [] , columns = player_col )
 # logged_players.set_index( "player_id" )
-logged_players = dict()
+make_player_df()
 
 # match_col = [ "match_id" , "player_1", "player_2" , "status" ]
+# current_matches = match
 current_matches : dict = dict()
 
 def _log_in( request_msg ):
@@ -31,15 +32,13 @@ def _log_in( request_msg ):
     '''
 
     player_id = request_msg[ "player_id"]
-    if player_id in logged_players:
+    if is_logged( player_id ):
         raise illegalMethod( f"player {player_id} is already logged in" )
     
     # ---------------------------------
     # saving player
-    addr = request_msg[ "addr" ]
     pubk = request_msg[ "pubk" ]
-    player_obj = player(player_id, addr, pubk )
-    logged_players[ player_id ] = player_obj
+    add_player( player_id , pubk )
     
     # ----------------------------------
     # making response
@@ -47,7 +46,6 @@ def _log_in( request_msg ):
         "flag": "ok",
         "args" : {
             "player_id" : player_id,
-            "session_num" : player_obj.session_num,
             "timestamp" : t.time()
         }
     }
@@ -67,8 +65,8 @@ def _log_out( request_msg ):
 
     # checking legallity ---------------------------------
     player_id = request_msg[ "player_id"]
-    if player_id in logged_players:
-        player_obj = logged_players.pop( player_id )
+    if is_logged( player_id ):
+        rmv_player( player_id )
     else:
         raise illegalMethod( f"Player {player_id} already logged out.")
     
@@ -76,9 +74,25 @@ def _log_out( request_msg ):
         "flag": "ok",
         "args" : {
             "player_id" : player_id,
-            "session_num" : player_obj.session_num,
             "timestamp" : t.time()
         }
+    }
+
+    return response_dict
+
+def _smp_players( request_msg ):
+
+    # checking legallity ---------------------------------
+    player_id = request_msg[ "player_id"]
+    if not is_logged( player_id ):
+        raise illegalMethod( 'requesting player is not logged in')
+    
+    status_filter = request_msg.get( "status" , None )
+    players = sample_players( status_filter ).to_dict()
+
+    response_dict = {
+        "flag" : "ok",
+        "args" : players
     }
 
     return response_dict
@@ -179,8 +193,13 @@ def _join_match( request_msg ):
 #     num = int( request_msg.get( "page_num") )
 
 
-# def _push_play( request_msg ):
-#     pass
+def _push_play( request_msg ):
+
+    '''
+    
+    { player_id , match_id , play_num , card_n , card_color ,  }
+    '''
+    pass
 
 # def _pinn_mstate( request_msg ):
 #     pass
