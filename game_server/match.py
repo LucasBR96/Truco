@@ -1,10 +1,10 @@
-from truco.pseudo_rng import *
-from truco.play import *
-from truco.card import *
-from truco.player import *
-from truco.deck import *
-from truco.util import *
-from truco.match_fsm import *
+from game_server.pseudo_rng import *
+from game_server.play import *
+from game_server.card import *
+from game_server.player import *
+from game_server.deck import *
+from dapp.util import *
+from game_server.match_fsm import *
 import time as t
 
 class match:

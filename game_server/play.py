@@ -1,4 +1,4 @@
-from truco.card import card
+from game_server.card import card
 from hashlib import sha224
 
 class play:

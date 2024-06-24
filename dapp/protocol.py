@@ -1,4 +1,4 @@
-from truco.util import *
+from dapp.util import *
 from truco.log import *
 from truco.match import *
 from truco.player import *

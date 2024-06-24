@@ -3,7 +3,7 @@ import logging
 import requests
 from truco.log import *
 from truco.constantes import *
-from truco.util import *
+from dapp.util import *
 from truco.protocol import *
 from truco.player import *
 from truco.errors import *

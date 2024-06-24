@@ -1,8 +1,10 @@
-from truco.play import *
-from truco.protocol import *
-from truco.log import *
+# from gplay import *
+
 
 class player:
+
+    # session id -----------------------------------
+    session = 0
 
     # player status ---------------------------------
     idle_status = "idle"
@@ -17,12 +19,13 @@ class player:
         
         self.status = player.idle_status
         self.current_match = None
+
+        self.session_num = player.session
+        player.session += 1 
     
     def __hash__( self ):
         return hash( self._id )
     
     def to_dict( self ):
         return self.__dict__()
-    
-    def sign_play( self , play_obj : play , last_sgn : str ) -> str:
-        pass
+
