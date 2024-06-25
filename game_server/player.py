@@ -12,7 +12,7 @@ def make_player_df():
 
     player_col = ["player_id" , "pubk" , "status" , "current_match" ]
     player_df : pd.DataFrame = pd.DataFrame( [] , columns = player_col )
-    player_df.set_index( ["player_id"] )
+    player_df.set_index( ["player_id"] , inplace = True )
 
 
 def is_logged( player_id ):
