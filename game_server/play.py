@@ -1,4 +1,4 @@
-from game_server.card import card
+from card import card
 from hashlib import sha224
 
 class play:

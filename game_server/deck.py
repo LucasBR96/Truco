@@ -1,5 +1,5 @@
-from truco.card import *
-from truco.pseudo_rng import *
+from card import *
+from pseudo_rng import *
 
 from itertools import product
 
@@ -15,12 +15,12 @@ class deck:
         self.counter = None #cards remaining
         self.shuffle()
     
-    def __getittem__( self , idx : int ) -> card:
+    def __getitem__( self , idx : int ) -> card:
 
         val , rank = self.cards[ idx ]
         return card( val , rank )
 
-    def deal_card( self ):
+    def __call__( self ):
 
         '''
         removes top card and returns to the player

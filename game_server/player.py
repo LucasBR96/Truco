@@ -6,12 +6,14 @@ PLAYING = 'playing'
 
 PAGE_SZ = 5
 
+player_df : pd.DataFrame
+
 def make_player_df():
 
     global player_df
 
     player_col = ["player_id" , "pubk" , "status" , "current_match" ]
-    player_df : pd.DataFrame = pd.DataFrame( [] , columns = player_col )
+    player_df = pd.DataFrame( [] , columns = player_col )
     player_df.set_index( ["player_id"] , inplace = True )
 
 
@@ -29,6 +31,10 @@ def add_player( player_id , pubk ):
 
     global player_df
     player_df.loc[ player_id ] = ser
+
+def get_player( player_id ):
+    global player_df
+    return player_df.loc[ player_id ]
 
 def rmv_player( player_id ):
 

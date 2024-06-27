@@ -5,6 +5,7 @@ import pandas as pd
 from player import *
 from errors import *
 from match import *
+from constantes import *
 
 from json import loads , dumps
 import time as t
@@ -18,7 +19,7 @@ make_player_df()
 
 # match_col = [ "match_id" , "player_1", "player_2" , "status" ]
 # current_matches = match
-current_matches : dict = dict()
+create_match_df()
 
 def _log_in( request_msg ):
 
@@ -109,26 +110,25 @@ def _create_match( request_msg ):
 
     # checking legallity ---------------------------------
     player_id = request_msg[ "player_id" ]
-    if player_id in logged_players:
-        player_obj : player = logged_players.pop( player_id )
-    else:
+    if not is_logged( player_id ):
         raise illegalMethod( f"Player {player_id} already logged out.")
     
     # player must be idle -----------------------------------
-    if player_obj.status != player.idle_status:
+    player_info = get_player( player_id )
+    if player_info[ "status" ] != IDLE:
         raise illegalMethod( f"Player {player_id} is already active.")
     
-    new_match = match( player_obj )
-    current_matches[ new_match._id ] = new_match
-    player_obj.status = player.waiting_status
+    match_id = add_match( player_id )
+    set_match( player_id , match_id )
+    set_status( player_id , WAITING )
 
     # response
     response_payload = {
         "flag": "ok",
         "args" :{
             "match_owner" : player_id,
-            "match_id"    : new_match._id,
-            "match_start" : new_match.start
+            "match_id"    : match_id,
+            "match_start" : t.time()
         }
     }
 
@@ -145,39 +145,39 @@ def _join_match( request_msg ):
         { "flag" : "ok" , "args": { "match_id" : match_id, "timestamp" : <logTime> } }
     '''
 
-    # check if player 
+   # checking legallity ---------------------------------
     player_id = request_msg[ "player_id" ]
-    if player_id not in logged_players:
-        raise illegalMethod( f"player {player_id} is not logged in" )
+    if not is_logged( player_id ):
+        raise illegalMethod( f"Player {player_id} already logged out.")
     
-    # checking match existence
-    match_id = request_msg[ "game_id" ]
-    if match_id not in current_matches:
-        raise illegalMethod( f"match #{match_id} does not exist" )
+    # player must be idle -----------------------------------
+    player_info = get_player( player_id )
+    if player_info[ "status" ] != IDLE:
+        raise illegalMethod( f"Player {player_id} is already active.")
     
-    target_match : match = current_matches[ match_id ]
-    a = target_match.player_1 is not None
-    b = target_match.player_2 is not None
-    if a and b:
-        raise illegalMethod( f"match #{match_id} is full" )
+    match_id = request_msg[ "match_id" ]
+    if not match_exists( match_id ):
+        raise illegalMethod( f"Match {match_id} does not exist" )
     
-    player_obj = logged_players[ player_id ]
-    target_match.add_player( player_obj )
-    # target_match.player_2 = logged_players[ player_id ]
-    # target_match.player_2.status = player.playing_status
-    # target_match.player_2.current_match = match_id
+    match_info = get_match( match_id )
+    if match_info[ "current_status" ] == PLAYING:
+        raise illegalMethod( f"Match {match_id} already full" )
 
-    # target_match.player_1.status = player.playing_status
+    join_match( match_id , player_id )
+    set_match( player_id , match_id )
+    set_status( player_id , PLAYING )
+    set_status( match_info[ "player_1_id"] , PLAYING )
 
-    # making the response
-    response : dict = {
-        "flag" : "ok",
-        "args" : {
-            "match_id" : match_id,
-            "timestamp" : t.time()
+    # response
+    response_payload = {
+        "flag": "ok",
+        "args" :{
+            "match_id"    : match_id,
+            "match_start" : t.time()
         }
     }
-    return response
+
+    return response_payload
 
 # def _check_matches( request_msg ):
 
@@ -201,65 +201,30 @@ def _push_play( request_msg ):
     '''
     pass
 
-# def _pinn_mstate( request_msg ):
-#     pass
+def _check_mstate( request_msg ):
+    
+    player_id = request_msg["player_id"]
+    player_data = get_player( player_id )
+    match_id = player_data[ "current_match" ]
+    if match_id is None:
+        raise illegalMethod( "Player has no match" )
+    
+    response_msg = {
+        "flag" : "ok",
+        "args" : get_match_obj( match_id ).to_dict()
+    }
+
+    return response_msg
 
 method_dict = {
     "log_in" : _log_in,
     "log_out" : _log_out,
+    "sample_players"  : _smp_players,
     "create_match" : _create_match,
-    # "check_games"  : _check_matches
     "join_match" : _join_match,
     "push_play" : _push_play,
-    "ping_mstate" : _ping_mstate,
+    "check_mstate" : _check_mstate,
 }
-
-
-# Mensagens para Inspect state
-# def _check_log( command ):
-
-#     '''
-#     allows player to check its own status in the server
-
-#     request
-#         { "cmd" : "check_log" , "player_id" : <PlayerId> , "args" : {} }
-#     response
-#         { "act" : "check_log" , "player_id" : <PlayerId> , "logged" : <Bool> , "player" : <playerObj> }
-#     '''
-
-#     player_id = command[ "player_id" ]
-#     is_logged = ( player_id in logged_players )
-
-#     response = { "act" : "check_log", "player_id" : player_id, "logged" : is_logged }
-#     response[ "player_obj" ] = None
-#     # if is_logged:
-#     #     player_obj = logged_players[ player_id ]
-#     #     response[ "player_obj" ] = player_obj.to_dict
-    
-#     return dumps( response )
-
-# def _check_players( command ):
-    
-#     '''
-#     allows player to check the logged players
-
-#     request
-#         { "cmd" : "check_players" , "player_id" : <PlayerId> , "args" : {} }
-#     response
-#         { "act" : "check_players" , "player_id" : <PlayerId> , "players" : [ <playerObj> ] }
-#     '''
-
-#     player_id = command[ "player_id" ]
-#     response = { "act" : "check_players", "player_id" : player_id }
-#     # response[ "players" ] = [
-#     #     player_d.to_dict() for player_d in logged_players.values()
-#     # ]
-
-#     return dumps( response )
-
-# def _check_games( command ):
-#     pass
-
 
 
 def get_request( sentence : bytes , addr : str ):

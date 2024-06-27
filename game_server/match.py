@@ -5,11 +5,10 @@
 # from game_server.deck import *
 # from dapp.util import *
 
-from game_server.match_fsm import *
+from match_fsm import *
 import time as t
 import pandas as pd
 
-global nxt_match_id
 nxt_match_id = 0
 
 OUT = 0
@@ -20,12 +19,14 @@ OVER = "over"
 WAITING = 'waiting'
 PLAYING = 'playing'
 
+match_df : pd.DataFrame
+
 def create_match_df( ):
 
     global match_df
 
     match_col = ["match_id" , "player_1_id" , "player_2_id" , "current_status" ]
-    match_df : pd.DataFrame = pd.DataFrame( [] , columns = match_col )
+    match_df = pd.DataFrame( [] , columns = match_col )
     match_df.set_index( ["match_id"] , inplace = True )
 
     global match_objects
@@ -34,6 +35,10 @@ def create_match_df( ):
 def match_exists( match_id ):
     global match_df
     return match_id in match_df.index
+
+def get_match( match_id ):
+    global match_df
+    return match_df.loc[ match_id ]
 
 def get_player_tag( match_id , player_id ):
     global match_df
@@ -51,6 +56,7 @@ def player_in_match( match_id , player_id ):
 
 def add_match( player_id ):
 
+    global nxt_match_id
     _id = nxt_match_id
     nxt_match_id += 1
 
@@ -62,6 +68,8 @@ def add_match( player_id ):
     global match_df
     match_df.loc[ _id ] = ser
 
+    return _id
+
 def join_match( match_id , player_id ):
     
     global match_df
@@ -70,7 +78,9 @@ def join_match( match_id , player_id ):
 
     global match_objects
     match_objects[ match_id ] = match_fsm()
-    
+
+def get_match_obj( match_id ):
+    return match_objects.get( match_id , None )
 
 # class match:
 

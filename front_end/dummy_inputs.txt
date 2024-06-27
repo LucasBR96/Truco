@@ -1,0 +1,16 @@
+--- log in
+
+"{ \"method\" : \"log_in\" , \"args\" : { \"player_id\" : \"lucas\" , \"pubk\" : \"Aaaa\" } }"
+"{ \"method\" : \"log_in\" , \"args\" : { \"player_id\" : \"guto\" , \"pubk\" : \"BBBbbb\" } }"
+
+--- log out
+
+-- list players
+
+"{ \"method\" : \"sample_players\" , \"args\" : { \"player_id\" : \"lucas\"  } }"
+
+-- create_match
+"{ \"method\" : \"create_match\" , \"args\" : { \"player_id\" : \"lucas\"  } }"
+
+-- join_match
+"{ \"method\" : \"join_match\" , \"args\" : { \"player_id\" : \"guto\" , \"match_id\" : 0 } }"
