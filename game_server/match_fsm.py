@@ -62,10 +62,9 @@ class match_fsm:
         if not answ:
             raise illegalMethod( err )
         
-        self.last_sign = move.signature
 
         plr_table = self.table_1 if plyr_1 else self.table_2
-        plr_card = move.card
+        plr_card = move.card_obj
         plr_table[ self.turn ] = plr_card
 
         plr_hand : list = self.hand_1 if plyr_1 else self.hand_2
@@ -95,8 +94,8 @@ class match_fsm:
         # ---------------------------------------------------
         # checking correct hand
         plr_hand : list = self.hand_1 if plyr_1 else self.hand_2
-        if move.card not in plr_hand:
-            err_msg = f"Card {move.card} is not in player_{tag}'s hand."
+        if move.card_obj not in plr_hand:
+            err_msg = f"Card {move.card_obj} is not in player_{tag}'s hand."
             return False , err_msg
         
         # ------------------------------------------------------

@@ -6,6 +6,9 @@ from player import *
 from errors import *
 from match import *
 from constantes import *
+from play import *
+from match_fsm import *
+from util import *
 
 from json import loads , dumps
 import time as t
@@ -179,26 +182,41 @@ def _join_match( request_msg ):
 
     return response_payload
 
-# def _check_matches( request_msg ):
-
-#     '''
-#     returns running games
-
-#     request
-#         { "player_id" : <playerId> , "addr" : PlayerAddr , "page_num" : num , "status" : "active" }
-#     response
-#         { "flag" : "ok" , "args" : { "list" : [ gamelist ] } }
-#     '''
-    
-#     num = int( request_msg.get( "page_num") )
 
 
 def _push_play( request_msg ):
 
     '''
-    
     { player_id , match_id , play_num , card_n , card_color ,  }
     '''
+
+    match_id = request_msg[ "match_id" ]
+    match_obj : match_fsm = get_match_obj( match_id )
+
+    player_id = request_msg[ "player_id" ]
+    pubk = get_player( player_id )[ "pubk" ]
+
+    play_obj = play(
+        match_id,
+        request_msg[ "round_n" ],
+        request_msg[ "card_n" ],
+        player_id,
+        request_msg[ "card_val" ],
+        request_msg[ "card_rank"]
+    )
+
+    play_str = str( play_obj )
+    if not( match_obj.last_sign is None ):
+        play_str = play_str + match_obj.last_sign
+    
+    play_sign = request_msg[ "sign" ]
+    if not verify_signature( play_sign , play_str , pubk ):
+        raise illegalMethod( "Play signature is not valid" )
+    match_obj.last_sign = play_sign
+
+    plyr_1 = ( get_player_tag( match_id , player_id ) == PLAYER_1 )
+    match_obj.push_move( play_obj ) 
+    
     pass
 
 def _check_mstate( request_msg ):
