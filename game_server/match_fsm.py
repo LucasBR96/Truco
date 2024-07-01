@@ -17,7 +17,7 @@ class match_fsm:
 
         self.deck = deck( make_seed() )
         self.plyr_1_nxt = True
-        self.last_sign = None
+        self.last_mv = None
 
         self.curr_round = -1
         self.turn = 0
@@ -61,8 +61,8 @@ class match_fsm:
         answ , err = self._is_move_valid( move , plyr_1 )
         if not answ:
             raise illegalMethod( err )
+        self.last_mv = str( move )
         
-
         plr_table = self.table_1 if plyr_1 else self.table_2
         plr_card = move.card_obj
         plr_table[ self.turn ] = plr_card
@@ -132,17 +132,20 @@ class match_fsm:
     def to_dict( self , plyr_1 : bool ):
 
         r_dict = {}
-
+        
+        r_dict[ "your_turn" ] = ( plyr_1 == self.plyr_1_nxt )
+        r_dict[ "last_mv" ] = self.last_mv
         r_dict[ "curr_round" ] = self.curr_round
         r_dict[ "turn" ] = self.turn
-        r_dict[ "table_1" ] = self.table_1
-        r_dict[ "table_2" ] = self.table_2
+        r_dict[ "table_1" ] = [ str( c ) for c in self.table_1 ]
+        r_dict[ "table_2" ] = [ str( c ) for c in self.table_2 ]
         r_dict[ "in_round_score_1" ] = self.in_round_score_1
         r_dict[ "in_round_score_2" ] = self.in_round_score_2
 
-        r_dict[ "hand" ] = self.hand_1
+        hand =  self.hand_1
         if not plyr_1:
-            r_dict[ "hand" ] = self.hand_2
+            hand = self.hand_2
+        r_dict[ "hand" ] = [ str( c ) for c in hand ]
 
         r_dict[ "score_1" ] = self.score_1
         r_dict[ "score_2" ] = self.score_2

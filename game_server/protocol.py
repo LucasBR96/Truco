@@ -182,8 +182,6 @@ def _join_match( request_msg ):
 
     return response_payload
 
-
-
 def _push_play( request_msg ):
 
     '''
@@ -196,28 +194,24 @@ def _push_play( request_msg ):
     player_id = request_msg[ "player_id" ]
     pubk = get_player( player_id )[ "pubk" ]
 
-    play_obj = play(
-        match_id,
-        request_msg[ "round_n" ],
-        request_msg[ "card_n" ],
-        player_id,
-        request_msg[ "card_val" ],
-        request_msg[ "card_rank"]
-    )
+    play_str = request_msg[ "play_str" ]
+    play_obj = play.from_str( play_str )
 
-    play_str = str( play_obj )
-    if not( match_obj.last_sign is None ):
-        play_str = play_str + match_obj.last_sign
+    # play_str = str( play_obj )
+    # if not( match_obj.last_sign is None ):
+    #     play_str = play_str + match_obj.last_sign
     
-    play_sign = request_msg[ "sign" ]
-    if not verify_signature( play_sign , play_str , pubk ):
-        raise illegalMethod( "Play signature is not valid" )
-    match_obj.last_sign = play_sign
+    # play_sign = request_msg[ "sign" ]
+    # if not verify_signature( play_sign , play_str , pubk ):
+    #     raise illegalMethod( "Play signature is not valid" )
+    # match_obj.last_sign = play_sign
 
     plyr_1 = ( get_player_tag( match_id , player_id ) == PLAYER_1 )
-    match_obj.push_move( play_obj ) 
+    match_obj.push_move( play_obj , plyr_1 )
+
+    response_dict = { "flag" : "ok" , "args" : {} } 
+    return response_dict
     
-    pass
 
 def _check_mstate( request_msg ):
     
@@ -227,9 +221,14 @@ def _check_mstate( request_msg ):
     if match_id is None:
         raise illegalMethod( "Player has no match" )
     
+    match_obj : match_fsm = get_match_obj( match_id )
+    if match_obj is None:
+        raise illegalMethod( f"match {match_id} has not yet started" )
+
+    tag = get_player_tag( match_id , player_id )
     response_msg = {
         "flag" : "ok",
-        "args" : get_match_obj( match_id ).to_dict()
+        "args" : match_obj.to_dict( tag == PLAYER_1 )
     }
 
     return response_msg

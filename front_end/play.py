@@ -15,7 +15,7 @@ class play:
             str_vals[ 5 ]
         )
 
-    def __init__( self , game_id : int , round_n : int , card_n : int , player_id : int , value , rank ):
+    def __init__( self , game_id : int , round_n : int , card_n : int , player_id : str , value , rank ):
 
         '''
         Cada jogada individual
@@ -35,4 +35,7 @@ class play:
         str( self.card_n ) + "-" + \
         str( self.player_id ) + "-" + \
         str( self.card_obj )
+    
+
+
 
