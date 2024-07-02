@@ -57,4 +57,4 @@ def verify_signature( sign : str , entry_string : str , k_val ):
     sign_object = pss.new( key_obj )
     hash_obj = SHA256.new( entry_string.encode() )
     
-    return sign_object.verify(hash_obj , sign.encode() )
+    return sign_object.verify(hash_obj , bytes.fromhex( sign ) )

@@ -18,6 +18,7 @@ class match_fsm:
         self.deck = deck( make_seed() )
         self.plyr_1_nxt = True
         self.last_mv = None
+        self.last_sign = None
 
         self.curr_round = -1
         self.turn = 0
@@ -31,6 +32,9 @@ class match_fsm:
 
         self.score_1 = 0
         self.score_2 = 0
+
+        self.ack_1 = False
+        self.ack_2 = False
         pass
 
     def _init_round( self ):
@@ -46,6 +50,16 @@ class match_fsm:
         self.in_round_score_1 = 0
         self.in_round_score_2 = 0
 
+    def freeze( self ):
+
+        self.ack_1 = False
+        self.ack_2 = False
+    
+    def is_frozen( self ):
+
+        ack = self.ack_1 and self.ack_2
+        return not ack
+
     def get_winner( self ):
         
         if self.score_1 == 12:
@@ -56,12 +70,13 @@ class match_fsm:
         
         return OUT
 
-    def push_move( self , move : play , plyr_1 = True ):
+    def push_move( self , move : play , sgn_str ,plyr_1 = True ):
 
         answ , err = self._is_move_valid( move , plyr_1 )
         if not answ:
             raise illegalMethod( err )
         self.last_mv = str( move )
+        self.last_sign = sgn_str
         
         plr_table = self.table_1 if plyr_1 else self.table_2
         plr_card = move.card_obj
@@ -135,6 +150,7 @@ class match_fsm:
         
         r_dict[ "your_turn" ] = ( plyr_1 == self.plyr_1_nxt )
         r_dict[ "last_mv" ] = self.last_mv
+        r_dict[ "last_sign" ] = self.last_sign
         r_dict[ "curr_round" ] = self.curr_round
         r_dict[ "turn" ] = self.turn
         r_dict[ "table_1" ] = [ str( c ) for c in self.table_1 ]

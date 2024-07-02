@@ -1,32 +1,18 @@
 from socket import *
 from json import dumps , loads
 from util import *
-import protocol as p
+from protocol import fe_protocol as player
 import sys
 
+a_pvtk , a_pubk = generate_rsa_keys()
+alice = player( "alice" , a_pubk , a_pvtk )
+alice.log_in()
+alice.create_match()
 
-method_dict = {
-    # "log_in" : _log_in,
-    "log_out" : _log_out,
-    # "sample_players"  : _smp_players,
-    # "create_match" : _create_match,
-    # "join_match" : _join_match,
-    # "push_play" : _push_play,
-    # "check_mstate" : _check_mstate,
-}
-
-pvtk , pubk = generate_rsa_keys()
-if __name__ == "__main__":
-    
-    player_id = sys.argv[ 1 ]
-    p.log_in( player_id , pubk )
-
-    while True:
-        nxt_request = input( ">>>")
-        if not nxt_request:
-            continue
-
-        req_fields = nxt_request.split(_)
+b_pvtk , b_pubk = generate_rsa_keys()
+bob = player( "bob" , b_pubk , b_pvtk )
+bob.log_in()
+bob.join_match( 0 )
 
 #     encoded_arg = arg.encode()
 #     print( f"encoded input: { encoded_arg }" )

@@ -71,7 +71,7 @@ if __name__ == "__main__":
             logger.info( f"raw payload: { sentence }")
 
             requested_method , request = get_request( sentence , addr )
-            logger.info( f"decoded payload: {request}")
+            # logger.info( f"decoded payload: {request}")
 
             method = method_dict[ requested_method ]
             response_data = method( request )
