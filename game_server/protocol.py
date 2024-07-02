@@ -207,7 +207,7 @@ def _push_play( request_msg ):
     # match_obj.last_sign = play_sign
 
     plyr_1 = ( get_player_tag( match_id , player_id ) == PLAYER_1 )
-    match_obj.push_move( play_obj , sign_str , plyr_1 )
+    match_obj.push_play( play_obj , sign_str , plyr_1 )
 
     response_dict = { "flag" : "ok" , "args" : {} } 
     return response_dict
@@ -226,11 +226,13 @@ def _check_mstate( request_msg ):
         raise illegalMethod( f"match {match_id} has not yet started" )
 
     tag = get_player_tag( match_id , player_id )
+    plyr_1 = ( tag == PLAYER_1 )
     response_msg = {
         "flag" : "ok",
-        "args" : match_obj.to_dict( tag == PLAYER_1 )
+        "args" : match_obj.to_dict( plyr_1 )
     }
 
+    match_obj.ack_state( plyr_1)
     return response_msg
 
 method_dict = {

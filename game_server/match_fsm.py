@@ -59,6 +59,20 @@ class match_fsm:
 
         ack = self.ack_1 and self.ack_2
         return not ack
+    
+    def _ack_state( self , plyr_1 : bool ):
+
+        if plyr_1: 
+            self.ack_1 = True
+        else:
+            self.ack_2 = True
+    
+    def ack_state( self , plyr_1 ):
+
+        self._ack_state( plyr_1 )
+        if self.is_frozen() : return
+        if self.turn != 3 : return
+        self._init_round()
 
     def get_winner( self ):
         
@@ -70,11 +84,17 @@ class match_fsm:
         
         return OUT
 
-    def push_move( self , move : play , sgn_str ,plyr_1 = True ):
+    def push_play( self , move : play , sgn_str , plyr_1 = True ):
 
-        answ , err = self._is_move_valid( move , plyr_1 )
-        if not answ:
-            raise illegalMethod( err )
+        flag , msg = self._is_move_valid( move , plyr_1 )
+        if not flag:
+            raise illegalMethod( msg )
+        self._push_move( move , sgn_str , plyr_1 )
+        self._update_state()
+        self.freeze()
+
+    def _push_move( self , move : play , sgn_str ,plyr_1 = True ):
+
         self.last_mv = str( move )
         self.last_sign = sgn_str
         
@@ -85,12 +105,12 @@ class match_fsm:
         plr_hand : list = self.hand_1 if plyr_1 else self.hand_2
         plr_hand.remove( plr_card )
 
-        othr_table = self.table_2 if plyr_1 else self.table_1
-        other_card = othr_table[ self.turn ]
-
-        self._update_state( plyr_1 , plr_card , other_card )
     
     def _is_move_valid( self , move : play , plyr_1 : bool ):
+
+        if self.is_frozen():
+            err_msg = f"The current match state must be seen by all players"
+            return False , err_msg
 
         # ---------------------------------------------------
         # checking end of match
@@ -119,14 +139,24 @@ class match_fsm:
 
         return True , ''
 
-    def _update_state( self , plyr_1 : bool , plr_card : card , other_card : card = None ):
+    
 
-        if other_card is None:
-            self.plyr_1_nxt = not plyr_1
+    def _update_state( self ):
+
+        card_1 = self.table_1[ self.turn ]
+        card_2 = self.table_2[ self.turn ]
+        
+        a = ( card_1 is None )
+        b = ( card_2 is None )
+        if a and b:
             return
+        
+        if ( card_1 is None ) or ( card_2 is None ):
+            self.plyr_1_nxt = not self.plyr_1_nxt
+            return 
 
-        t_win = plr_card > other_card
-        if t_win == plyr_1:
+        card_1 > card_2
+        if card_1 > card_2:
             self.plyr_1_nxt = True
             self.in_round_score_1 += 1
         else:
@@ -142,7 +172,6 @@ class match_fsm:
         else:
             self.score_2 += 1
         
-        self._init_round()
     
     def to_dict( self , plyr_1 : bool ):
 
