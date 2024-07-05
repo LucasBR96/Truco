@@ -13,9 +13,12 @@ class match_fsm:
     handles in match game logic.
     '''
 
-    def __init__( self ):
+    def __init__( self , player_1 , player_2 ):
 
         self.deck = deck( make_seed() )
+        self.player_1 = player_1
+        self.player_2 = player_2
+
         self.plyr_1_nxt = True
         self.last_mv = None
         self.last_sign = None
@@ -178,6 +181,8 @@ class match_fsm:
         r_dict = {}
         
         r_dict[ "your_turn" ] = ( plyr_1 == self.plyr_1_nxt )
+        r_dict[ "player_1" ] = self.player_1
+        r_dict[ "player_2" ] = self.player_2
         r_dict[ "last_mv" ] = self.last_mv
         r_dict[ "last_sign" ] = self.last_sign
         r_dict[ "curr_round" ] = self.curr_round
@@ -194,5 +199,9 @@ class match_fsm:
 
         r_dict[ "score_1" ] = self.score_1
         r_dict[ "score_2" ] = self.score_2
-
+        
+        winner = self.get_winner()
+        if winner != OUT:
+            r_dict[ "seed" ] = self.deck.seed
+            r_dict[ "winner" ] = winner
         return r_dict

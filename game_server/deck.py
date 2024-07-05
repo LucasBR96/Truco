@@ -9,6 +9,7 @@ class deck:
 
     def __init__( self , seed ):
 
+        self.seed = seed
         self._shuffler : pseudo_shuffler = pseudo_shuffler( 40 , seed )
 
         self.cards = None

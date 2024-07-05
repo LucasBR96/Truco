@@ -1,12 +1,6 @@
 from os import environ
 import logging
 import requests
-from truco.log import *
-from truco.constantes import *
-from dapp.util import *
-from truco.protocol import *
-from truco.player import *
-from truco.errors import *
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger(__name__)
@@ -24,81 +18,19 @@ def report_error( err ):
 def handle_advance(data):
 
     sender = data[ "metadata" ][ "msg_sender"]
-    load = data[ "payload" ]
-    logger.info( f"\nAdvance request from {sender}" )
-    logger.info( f"Raw payload {load}")
+    logger.info( f"\Advance request from {sender}" )
+    logger.info( f"Hi!")
 
-    try:
-        command = get_command( sender , load )
-        logger.info( f"decoded payload {command}" )
-
-        requested_method = command["cmd"]
-        method = advance_methods[ requested_method ]
-        response_data = method( command )
-        logger.info( f"response data {response_data}\n" )
-
-        notice_response( response_data )
-        return "accept"
-    
-    except Exception as err:
-
-        raise err
-        # if isinstance( err , requestError ):
-        #     report_error( err )
-        # else:
-        #     logger.error( f"{str(err)}")
-        
-        # return "reject"
-
-    # # checking if it is a json object -----------------------
-    # command = get_command( load )
-    # if command is None:
-    #     log_info(f"unknown payload, message rejected\n")
-    #     return "reject"
-    # log_info( f"decoded payload {command}" )
-
-    # # checking if it is in a valid format -------------------
-    # if not check_command( command ):
-    #     log_info(f"unknown command\n" )
-    #     return "reject"
-    
-    # cmd = advance_methods[ command[ "cmd" ] ]
-    # response_data = cmd( sender , command )
-    # if response_data is None:
-    #     log_info( f"illegal command\n" )
-    #     return "reject"
-
-    # log_info( f"response data {response_data}\n")
-    # return "accept"
+    return "accept"
 
 
 def handle_inspect(data):
         
     sender = data[ "metadata" ][ "msg_sender"]
-    load = data[ "payload" ]
     logger.info( f"\nInspect request from {sender}" )
-    logger.info( f"Raw payload {load}")
+    logger.info( f"Hi!")
 
-    try:
-        command = get_command( sender , load , rqs_type = "inspect" )
-        logger.info( f"decoded payload {command}" )
-
-        requested_method = command["cmd"]
-        method = advance_methods[ requested_method ]
-        response_data = method( command )
-        logger.info( f"response data {response_data}\n" )
-
-        notice_response( response_data )
-        return "accept"
-    
-    except Exception as err:
-
-        if isinstance( err , requestError ):
-            report_error( err )
-        else:
-            logger.error( f"{str(err)}")
-        
-        return "reject"
+    return "accept"
 
 handlers = {
     "advance_state": handle_advance,
@@ -112,12 +44,13 @@ logger.info(f"--------------------- Truco Chain ---------------------")
 logger.info( f"" )
 while True:
     logger.info("Sending finish")
-    response = requests.post(rollup_server + "/finish", json=finish)
+    response : requests.Response = requests.post(rollup_server + "/finish", json=finish)
     logger.info(f"Received finish status {response.status_code}")
     if response.status_code == 202:
         logger.info("No pending rollup request, trying again")
     else:
         rollup_request = response.json()
+        logger.info( rollup_request )
         data = rollup_request["data"]
         handler = handlers[rollup_request["request_type"]]
         finish["status"] = handler(rollup_request["data"])

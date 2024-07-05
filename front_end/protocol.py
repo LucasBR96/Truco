@@ -207,3 +207,16 @@ class fe_protocol:
             self.mv_hist.append( ( play_str , sign_str ) )
             return "OK"
         return resp
+    
+    def report_match( self ):
+        
+        match_report = dict()
+        match_report[ "match_id" ] = self.match_id
+        match_report[ "player_1" ] = self.match_state[ "player_1" ]
+        match_report[ "player_2" ] = self.match_state[ "player_2" ]
+        match_report[ "seed" ] = self.match_state[ "seed" ]
+
+        match_report[ "num_plays" ] = len( self.mv_hist )
+        match_report[ "hist" ] = self.mv_hist
+
+        return match_report
