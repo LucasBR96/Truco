@@ -192,17 +192,12 @@ def _push_play( request_msg ):
     match_obj : match_fsm = get_match_obj( match_id )
 
     player_id = request_msg[ "player_id" ]
-    pubk = get_player( player_id )[ "pubk" ]
 
     play_str = request_msg[ "play_str" ]
     play_obj = play.from_str( play_str )
 
-    h_str = play_str
-    if not( match_obj.last_sign is None ):
-        h_str = play_str + match_obj.last_sign
-    
     sign_str = request_msg[ "sign_str" ]
-    if not verify_signature( sign_str , h_str , pubk ):
+    if not verify_signature( play_str, sign_str , match_obj.last_sign ):
         raise illegalMethod( "Play signature is not valid" )
     # match_obj.last_sign = play_sign
 

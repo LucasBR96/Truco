@@ -1,16 +1,51 @@
 # import Crypto
 # from Crypto.PublicKey import RSA
-
+# from Crypto.Cipher import PKCS1_OAEP as rsa_cipher
+# from Crypto.Signature import PKCS1_PSS as pss
+# from Crypto.Hash import SHA256
+from logging import Logger
+from hashlib import sha224
 # basic decoding ------------------------------------------
 
 def hex2str( msg : str):
     return bytes.fromhex( msg[ 2: ] )
 
 def str2hex( msg : str):
-    return "0x" + str.encode( "utf-8" ).hex()
+    return "0x" + msg.encode( "utf-8" ).hex()
 
+# hashing ----------------------------------------------
+def hex_hash( msg : str ):
 
-# AS criptography:
+    hash_val = sha224( msg.encode() ).hexdigest()
+    return hash_val[ 0 : 15 ]
 
-def rsa_encode( entry_string : str , k_val : bytes ) -> str:
-    return ""
+def make_signature( msg : str , previous_sign = None ):
+
+    if previous_sign is None:
+        previous_sign = ''
+    msg = msg + previous_sign
+    return hex_hash( msg )
+
+def verify_signature( msg : str , sign , previous_sign = None ):
+
+    expected_sign = make_signature( msg , previous_sign )
+    return sign == expected_sign
+
+# chain verification ---------------------------------------
+def validate_minichain( mini_chain , logger : Logger = None ):
+
+    must_log = not( logger is None )
+    
+    last_sign , flag = None , True
+    for i , ( play_str , sign_str ) in enumerate( mini_chain ):
+        
+        flag = verify_signature( play_str , sign_str , last_sign )
+        if must_log:
+            logger.info( f"{i} {play_str} {sign_str} {flag}" )
+
+        if not flag:
+            break
+
+        last_sign = sign_str 
+
+    return flag

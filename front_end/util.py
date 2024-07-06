@@ -1,46 +1,32 @@
-import Crypto
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP as rsa_cipher
-from Crypto.Signature import PKCS1_PSS as pss
-from Crypto.Hash import SHA256
+# import Crypto
+# from Crypto.PublicKey import RSA
+# from Crypto.Cipher import PKCS1_OAEP as rsa_cipher
+# from Crypto.Signature import PKCS1_PSS as pss
+# from Crypto.Hash import SHA256
 
+from hashlib import sha224
+# basic decoding ------------------------------------------
 
-def generate_rsa_keys( ):
+def hex2str( msg : str):
+    return bytes.fromhex( msg[ 2: ] )
 
-    private_obj = RSA.generate( 1024 )
-    private_str = private_obj.export_key( "DER" ).hex()
+def str2hex( msg : str):
+    return "0x" + str.encode( "utf-8" ).hex()
 
-    public_obj  = private_obj.public_key()
-    public_str  = public_obj.export_key( "DER" ).hex()
+# hashing ----------------------------------------------
+def hex_hash( msg : str ):
 
-    return private_str , public_str
+    hash_val = sha224( msg.encode() ).hexdigest()
+    return hash_val[ 0 : 15 ]
 
-def rsa_encode( entry_string : str , k_val : str ) -> str:
-    
-    key_obj = RSA.import_key( bytes.fromhex( k_val ) )
-    cipher_obj = rsa_cipher.new( key_obj )
-    encrypted_str = cipher_obj.encrypt( entry_string.encode() )
-    return encrypted_str.hex()
+def make_signature( msg : str , previous_sign = None ):
 
-def rsa_decode( encoded_string : str, k_val : str ) -> str:
+    if previous_sign is None:
+        previous_sign = ''
+    msg = msg + previous_sign
+    return hex_hash( msg )
 
-    key_obj = RSA.import_key( bytes.fromhex( k_val ) )
-    cipher_obj = rsa_cipher.new( key_obj )
-    decoded_str = cipher_obj.decrypt( bytes.fromhex( encoded_string ) )
-    return decoded_str.decode()
+def verify_signature( msg : str , sign , previous_sign = None ):
 
-def rsa_signature( entry_string : str , k_val : str ):
-    
-    key_obj = RSA.import_key( bytes.fromhex( k_val ) )
-    sign_object = pss.new( key_obj )
-    hash_obj = SHA256.new( entry_string.encode() )
-    return sign_object.sign( hash_obj ).hex()
-    
-
-def verify_signature( sign : str , entry_string : str , k_val ):
-    
-    key_obj = RSA.import_key( bytes.fromhex( k_val ) )
-    sign_object = pss.new( key_obj )
-    hash_obj = SHA256.new( entry_string.encode() )
-    
-    return sign_object.verify(hash_obj , bytes.fromhex( sign ) )
+    expected_sign = make_signature( msg , previous_sign )
+    return sign == expected_sign
