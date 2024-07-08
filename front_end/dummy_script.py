@@ -5,13 +5,14 @@ from protocol import fe_protocol as player
 import sys
 
 def init_players():
-    # a_pvtk , a_pubk = generate_rsa_keys()
-    alice = player( "alice" , "aaaaa" , "aaaa" )
+
+    a_pvtk = generate_128bit_key()
+    alice = player( "alice" , a_pvtk , a_pvtk )
     alice.log_in()
     alice.create_match()
 
-    # b_pvtk , b_pubk = generate_rsa_keys()
-    bob = player( "bob" , "bbbbbb" , "bbbbbb" )
+    b_pvtk = generate_128bit_key()
+    bob = player( "bob" , b_pvtk , b_pvtk )
     bob.log_in()
     bob.join_match( 0 )
 

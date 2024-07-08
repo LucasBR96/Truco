@@ -189,11 +189,12 @@ class fe_protocol:
     
     def generate_sign_str( self , play_str ):
 
-        last_sign = None
+        last_sign = ''
         if self.mv_hist:
             last_sign = self.mv_hist[ -1 ][ 1 ]
+        to_sign = play_str + last_sign
         
-        return make_signature( play_str , last_sign )
+        return make_signature( to_sign , self.pvtk )
     
     def push_play( self , card_val , card_rank ):
 
