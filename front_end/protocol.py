@@ -211,6 +211,8 @@ class fe_protocol:
     def report_match( self ):
         
         match_report = dict()
+
+        match_report[ "reporter" ] = self.player_id
         match_report[ "match_id" ] = self.match_id
         match_report[ "player_1" ] = self.match_state[ "player_1" ]
         match_report[ "player_2" ] = self.match_state[ "player_2" ]

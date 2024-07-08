@@ -3,6 +3,7 @@ import logging
 import requests
 import json as js
 from util import *
+from protocol import *
 
 logging.basicConfig(level="INFO")
 logger = logging.getLogger(__name__)
@@ -11,21 +12,11 @@ logger = logging.getLogger(__name__)
 rollup_server = environ["ROLLUP_HTTP_SERVER_URL"]
 logger.info(f"HTTP rollup_server url is {rollup_server}")
 
-def notice_response( response_data ):
-    pass
+# def notice_response( response_data ):
+#     pass
 
-def report_error( err ):
-    pass
-
-def check_match_report( match_dict ):
-    
-    resp = match_dict
-    flag = validate_minichain( match_dict[ "mv_hist" ] , logger )
-    return flag , resp
-
-method_dict = {
-    "check_report": check_match_report
-}
+# def report_error( err ):
+#     pass
 
 def handle_advance(data):
 
@@ -37,7 +28,7 @@ def handle_advance(data):
     method_args = msg[ "args" ]
     logger.info( f"requested_method: {method_name}")
 
-    method = method_dict[ method_name ]
+    method = advance_methods[ method_name ]
     flag , resp = method( method_args )
     resp_form = str2hex( js.dumps( resp ) )
 
@@ -55,11 +46,17 @@ def handle_advance(data):
     return status
 
 
-def handle_inspect(data):
-        
-    sender = data[ "metadata" ][ "msg_sender"]
-    logger.info( f"\nInspect request from {sender}" )
-    logger.info( f"Hi!")
+def handle_inspect( data : str ):
+
+    decoded_payload = hex2str( data["payload"] ).decode() 
+       
+    query = decoded_payload.split( sep = "-" )
+    method = inspect_methods[ query[ 0 ] ]
+    resp = method( *query[1:] )
+
+    resp_form = str2hex( resp )
+    response = requests.post( rollup_server + "/report" , json={"payload": resp_form } )    
+    logger.info( f"Received report status {response.status_code} body {response.content}")
 
     return "accept"
 
@@ -81,7 +78,7 @@ while True:
         logger.info("No pending rollup request, trying again")
     else:
         rollup_request = response.json()
-        # logger.info( rollup_request )
+        logger.info( rollup_request )
         data = rollup_request["data"]
         handler = handlers[rollup_request["request_type"]]
         finish["status"] = handler(rollup_request["data"])
