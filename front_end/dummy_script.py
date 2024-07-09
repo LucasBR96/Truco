@@ -4,18 +4,30 @@ from util import *
 from protocol import fe_protocol as player
 import sys
 
-def init_players():
+def init_player( name ):
 
-    a_pvtk = generate_128bit_key()
+    pvtk = generate_128bit_key()
+    player_obj = player( name , pvtk , pvtk )
+
+    return player_obj
+
+def create_match( player_1 : player , player_2 : player ):
+
+    player_1.log_in()
+    player_1.create_match()
+
+    player_2.log_in()
+    player_2.join_match( player_1.match_id )
+
+def init_demo_players( ):
+
+    a_pvtk = "0x86629db8c231a6f584265c1616e44e05"
     alice = player( "alice" , a_pvtk , a_pvtk )
-    alice.log_in()
-    alice.create_match()
 
-    b_pvtk = generate_128bit_key()
+    b_pvtk = "0xa57c8012e2d98689371704831d00a8fa"
     bob = player( "bob" , b_pvtk , b_pvtk )
-    bob.log_in()
-    bob.join_match( 0 )
 
+    # create_match( alice , bob )
     return alice , bob
 
 def next_card( plyr_obj : player ):

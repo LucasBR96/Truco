@@ -27,6 +27,9 @@ def handle_advance(data):
     method_name = msg[ "method" ]
     method_args = msg[ "args" ]
     logger.info( f"requested_method: {method_name}")
+    if method_name != "check_report":
+        logger.info( f"method args: {method_args}")
+
 
     method = advance_methods[ method_name ]
     flag , resp = method( method_args )
@@ -48,11 +51,18 @@ def handle_advance(data):
 
 def handle_inspect( data : str ):
 
-    decoded_payload = hex2str( data["payload"] ).decode() 
-       
+    decoded_payload = hex2str( data["payload"] ).decode()  
     query = decoded_payload.split( sep = "-" )
-    method = inspect_methods[ query[ 0 ] ]
-    resp = method( *query[1:] )
+
+    method_name = query[ 0 ]
+    logger.info( f"requested_method: {method_name}")
+
+    method_args = query[1:]
+    logger.info( f"method args: {method_args}")
+
+    method = inspect_methods[ method_name ]
+    resp = method( *method_args )
+    logger.info( f"inspect response {resp}")
 
     resp_form = str2hex( resp )
     response = requests.post( rollup_server + "/report" , json={"payload": resp_form } )    
@@ -78,7 +88,7 @@ while True:
         logger.info("No pending rollup request, trying again")
     else:
         rollup_request = response.json()
-        logger.info( rollup_request )
+        # logger.info( rollup_request )
         data = rollup_request["data"]
         handler = handlers[rollup_request["request_type"]]
         finish["status"] = handler(rollup_request["data"])

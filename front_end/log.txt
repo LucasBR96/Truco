@@ -1,0 +1,7 @@
+
+Alice log in
+{ "method" : "log_in" , "args" :{ "player_id" : "alice" , "pubk" : "0x86629db8c231a6f584265c1616e44e05" } }
+curl http://localhost:8080/inspect/confirm_log_in-alice
+
+{ "method" : "log_in" , "args" :{ "player_id" : "bob" , "pubk" : "0xa57c8012e2d98689371704831d00a8fa" } }
+curl http://localhost:8080/inspect/confirm_log_in-bob

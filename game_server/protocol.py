@@ -212,7 +212,6 @@ def _push_play( request_msg ):
     response_dict = { "flag" : "ok" , "args" : {} } 
     return response_dict
     
-
 def _check_mstate( request_msg ):
     
     player_id = request_msg["player_id"]
